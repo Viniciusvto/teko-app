@@ -1,3 +1,13 @@
+
+# Tekó — App Mobile
+
+Aplicativo React Native/Expo para direcionar plantio de árvores urbanas para áreas de maior necessidade em Campinas/SP, combatendo ilhas de calor.
+
+Este é o app mobile. O backend (API) está no repositório separado:
+[teko](https://github.com/Viniciusvto/teko)
+
+---
+
 # Welcome to your Expo app 👋
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
