@@ -1,112 +1,107 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
-
-import { Collapsible } from '@/components/ui/collapsible';
-import { ExternalLink } from '@/components/external-link';
-import ParallaxScrollView from '@/components/parallax-scroll-view';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Fonts } from '@/constants/theme';
+import { useState, useEffect } from 'react';
+import { View, Text, FlatList, StyleSheet, ActivityIndicator } from 'react-native';
 
 export default function TabTwoScreen() {
+  const [especies, setEspecies] = useState([]);
+  const [carregando, setCarregando] = useState(true);
+  const [erro, setErro] = useState(null);
+
+  useEffect(() => {
+    async function buscarEspecies() {
+      try {
+        const url = process.env.EXPO_PUBLIC_API_URL;
+        const res = await fetch(url + '/especies');
+        const dados = await res.json();
+        setEspecies(dados);
+      } catch (e) {
+        setErro('Erro ao carregar espécies: ' + e.message);
+      } finally {
+        setCarregando(false);
+      }
+    }
+    buscarEspecies();
+  }, []);
+
+  if (carregando) {
+    return (
+      <View style={styles.centro}>
+        <ActivityIndicator size="large" color="#2e7d32" />
+        <Text style={styles.textoCarregando}>Carregando espécies...</Text>
+      </View>
+    );
+  }
+
+  if (erro) {
+    return (
+      <View style={styles.centro}>
+        <Text style={styles.textoErro}>{erro}</Text>
+      </View>
+    );
+  }
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
-      headerImage={
-        <IconSymbol
-          size={310}
-          color="#808080"
-          name="chevron.left.forwardslash.chevron.right"
-          style={styles.headerImage}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText
-          type="title"
-          style={{
-            fontFamily: Fonts.rounded,
-          }}>
-          Explore
-        </ThemedText>
-      </ThemedView>
-      <ThemedText>This app includes example code to help you get started.</ThemedText>
-      <Collapsible title="File-based routing">
-        <ThemedText>
-          This app has two screens:{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">app/(tabs)/explore.tsx</ThemedText>
-        </ThemedText>
-        <ThemedText>
-          The layout file in <ThemedText type="defaultSemiBold">app/(tabs)/_layout.tsx</ThemedText>{' '}
-          sets up the tab navigator.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/router/introduction">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Android, iOS, and web support">
-        <ThemedText>
-          You can open this project on Android, iOS, and the web. To open the web version, press{' '}
-          <ThemedText type="defaultSemiBold">w</ThemedText> in the terminal running this project.
-        </ThemedText>
-      </Collapsible>
-      <Collapsible title="Images">
-        <ThemedText>
-          For static images, you can use the <ThemedText type="defaultSemiBold">@2x</ThemedText> and{' '}
-          <ThemedText type="defaultSemiBold">@3x</ThemedText> suffixes to provide files for
-          different screen densities
-        </ThemedText>
-        <Image
-          source={require('@/assets/images/react-logo.png')}
-          style={{ width: 100, height: 100, alignSelf: 'center' }}
-        />
-        <ExternalLink href="https://reactnative.dev/docs/images">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful{' '}
-          <ThemedText type="defaultSemiBold" style={{ fontFamily: Fonts.mono }}>
-            react-native-reanimated
-          </ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
-    </ParallaxScrollView>
+    <FlatList
+      style={styles.lista}
+      data={especies}
+      keyExtractor={(item) => item.id}
+      renderItem={({ item }) => (
+        <View style={styles.cartao}>
+          <Text style={styles.nomePopular}>{item.nome_popular}</Text>
+          <Text style={styles.nomeCientifico}>{item.nome_cientifico}</Text>
+          <Text style={styles.info}>Porte: {item.porte}</Text>
+          <Text style={styles.info}>Captação de carbono: {item.captacao_carbono}</Text>
+          <Text style={styles.info}>Sol: {item.cuidados.sol}</Text>
+          <Text style={styles.observacoes}>{item.observacoes}</Text>
+        </View>
+      )}
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
+  lista: {
+    flex: 1,
+    backgroundColor: '#ffffff',
   },
-  titleContainer: {
-    flexDirection: 'row',
-    gap: 8,
+  centro: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  textoCarregando: {
+    marginTop: 10,
+    color: '#000000',
+  },
+  textoErro: {
+    color: 'red',
+    padding: 20,
+  },
+  cartao: {
+    backgroundColor: '#f1f8f2',
+    margin: 10,
+    padding: 15,
+    borderRadius: 10,
+    borderLeftWidth: 4,
+    borderLeftColor: '#2e7d32',
+  },
+  nomePopular: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000000',
+  },
+  nomeCientifico: {
+    fontSize: 14,
+    fontStyle: 'italic',
+    color: '#333333',
+    marginBottom: 6,
+  },
+  info: {
+    fontSize: 14,
+    color: '#000000',
+  },
+  observacoes: {
+    fontSize: 13,
+    color: '#555555',
+    marginTop: 6,
   },
 });
